@@ -1,6 +1,6 @@
 pragma solidity ^0.7.0;
-import "./interfaces/Uniswap.sol";
-import "./interfaces/IERC20.sol";
+import "../interfaces/uniswap/Uniswap.sol";
+import "../interfaces/IERC20.sol";
 import "hardhat/console.sol";
 
 interface IUniswapV2Callee {

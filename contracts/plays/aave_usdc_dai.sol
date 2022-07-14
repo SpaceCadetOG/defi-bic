@@ -3,7 +3,7 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../interfaces/aave/FlashLoanReceiverBase.sol";
-import "../interfaces/Uniswap.sol";
+import "../interfaces/uniswap/Uniswap.sol";
 import "hardhat/console.sol";
 
 contract USDC_DAI_AAVE_FLASHLOAN is FlashLoanReceiverBase {

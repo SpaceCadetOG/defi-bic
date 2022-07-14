@@ -1,5 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
-
+require("@nomiclabs/hardhat-vyper");
 const DEFAULT_COMPILER_SETTINGS = {
   version: '0.7.6', 
   settings: {
@@ -36,12 +36,13 @@ module.exports = {
     },
   },
   vyper: {
-    compilers: [{ version: "0.2.1" }, { version: "0.3.0" }],
+    compilers: [{ version: "0.2.0" }, { version: "0.3.0" }],
   },
   networks: {
     hardhat: {
       forking: {
         url: "https://eth-mainnet.g.alchemy.com/v2/vsFDGKdtpoZd19zlv3F7Z_x5EXTol_zr",
+        // url: "https://api.avax.network/ext/bc/C/rpc",
       },
     },
   },
