@@ -4,6 +4,7 @@
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
 
+const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const USDC_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2"; // find whale on etherscan => Look for exchanges like FTX || Binacne || Coinbase
 const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
@@ -13,7 +14,7 @@ const DAI_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2";
 const address_provider = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5";
 describe("2: Test Uniswap Funcs", function ()
 {
-    let usdcwhale, daiwhale, usdc, accounts, arb, dai, fundAmount, borrowAmount, fee, paybackAmount;
+    let usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount;
 
     beforeEach(async () =>
     {
@@ -40,9 +41,10 @@ describe("2: Test Uniswap Funcs", function ()
         daiwhale = await ethers.getSigner(DAI_WHALE);
         usdc = await ethers.getContractAt(TokenAbi, USDC);
         dai = await ethers.getContractAt(TokenAbi, DAI);
+        weth = await ethers.getContractAt(TokenAbi, WETH);
         fundAmount = 200n * 10n ** 18n; // 20000 dai
         borrowAmount = 100n * 10n ** 18n; // 10000 dai
-        fee = 9n * 10n ** 18n; // 10000 dai
+        fee = 10n * 10n ** 18n; // 10000 dai
         const ArbUSDC_USDT = await ethers.getContractFactory("arb_1");
         arb = await ArbUSDC_USDT.deploy(address_provider);
         await arb.deployed();
@@ -92,6 +94,8 @@ describe("2: Test Uniswap Funcs", function ()
             console.log(
               "+++++++++++++++++++++++FlashLoaning+++++++++++++++++++++++++++++"
             );
+            const AmountInMAX = 100n * 10n ** 18n;
+            const balance = await arb.TokenBalance(weth.address)
             await arb.makeMoney(dai.address, borrowAmount);
             console.log(
               "+++++++++++++++++++++++Complete+++++++++++++++++++++++++++++"
