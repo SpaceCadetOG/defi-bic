@@ -6,7 +6,7 @@ interface AggregatorV3Interface {
     view
     returns (
       uint80 roundId,
-      int answer,
+      uint answer,
       uint startedAt,
       uint updatedAt,
       uint80 answeredInRound

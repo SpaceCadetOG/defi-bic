@@ -34,6 +34,7 @@ describe("0: Fund Accts", function ()
         arb = await ArbUSDC_USDT.deploy();
         await arb.deployed();
         console.log('ArbContact:', arb.address)
+        
 
     });
 

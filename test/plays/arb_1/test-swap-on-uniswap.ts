@@ -10,6 +10,7 @@ const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const DAI_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2";
 const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 const USDT_WHALE = "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2";
+const address_provider = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5";
 describe("2: Test Uniswap Funcs", function ()
 {
     let usdcwhale, usdtwhale, daiwhale, usdc, accounts, arb, usdt, dai
@@ -41,15 +42,15 @@ describe("2: Test Uniswap Funcs", function ()
         usdc = await ethers.getContractAt(TokenAbi, USDC);
         dai = await ethers.getContractAt(TokenAbi, DAI);
         usdt = await ethers.getContractAt(TokenAbi, USDT);
-        const ArbUSDC_USDT = await ethers.getContractFactory("arb_usdc_usdt");
-        arb = await ArbUSDC_USDT.deploy();
+        const ArbUSDC_USDT = await ethers.getContractFactory("arb_1");
+        arb = await ArbUSDC_USDT.deploy(address_provider);
         await arb.deployed();
         console.log('ArbContact:', arb.address)
 
     });
 
 
-    describe('Swap USDC for USDT', () =>
+    describe('Swap USDC for DAI', () =>
     {
         it("unlock Acct", async () =>
         {
@@ -88,7 +89,7 @@ describe("2: Test Uniswap Funcs", function ()
             );
         });
 
-        it("usdc -> usdt  ", async () =>
+        it("usdc -> dai  ", async () =>
         {
             const amount = 100n * 10n ** 6n // 100 dai
             const usdcAmountInMAX = 100n * 10n ** 6n;
@@ -118,12 +119,12 @@ describe("2: Test Uniswap Funcs", function ()
             );
 
             console.log(
-                "B: USDT Balance of contact (trade)",
-                ethers.utils.formatUnits(await usdt.balanceOf(arb.address), 6)
+                "B: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
             );
             console.log(
-                "B: USDT Balance of user (trade)",
-                ethers.utils.formatUnits(await usdt.balanceOf(accounts[0].address), 6)
+                "B: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
             );
 
             await usdc
@@ -134,10 +135,10 @@ describe("2: Test Uniswap Funcs", function ()
                 "(Arbing NOW!)"
             );
 
-            await arb.ArbIt(usdt.address, amount, usdtAmountOut)
+            await arb.SimpleStableSwap(usdc.address, amount, usdtAmountOut)
 
             const balance = await arb.TokenBalance(usdt.address)
-            console.log(`New USDT ${ ethers.utils.formatUnits(balance, 6) }`)
+            console.log(`New DAI ${ ethers.utils.formatUnits(balance, 6) }`)
 
 
             console.log(
@@ -150,12 +151,12 @@ describe("2: Test Uniswap Funcs", function ()
             );
 
             console.log(
-                "A: USDT Balance of contact (trade)",
-                ethers.utils.formatUnits(await usdt.balanceOf(arb.address), 6)
+                "A: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
             );
             console.log(
-                "A: USDT Balance of user (trade)",
-                ethers.utils.formatUnits(await usdt.balanceOf(accounts[0].address), 6)
+                "A: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
             );
         });
     });
@@ -248,7 +249,236 @@ describe("2: Test Uniswap Funcs", function ()
                 "(Arbing NOW!)"
             );
 
-            await arb.ArbIt(dai.address, amount, AmountOut)
+            await arb.SimpleStableSwap(dai.address, amount, AmountOut)
+
+            const balance = await arb.TokenBalance(usdc.address)
+            console.log(`New USDC ${ ethers.utils.formatUnits(balance, 6) }`)
+
+
+            console.log(
+                "A: USDC Balance of contact (trade)",
+                ethers.utils.formatUnits(await usdc.balanceOf(arb.address), 6)
+            );
+            console.log(
+                "A: USDC Balance of user (trade)",
+                ethers.utils.formatUnits(await usdc.balanceOf(accounts[0].address), 6)
+            );
+
+            console.log(
+                "A: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await usdt.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "A: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await usdt.balanceOf(accounts[0].address), 18)
+            );
+        });
+    });
+
+
+    describe.skip('Swap ETH for Stable', () =>
+    {
+        it("unlock Acct", async () =>
+        {
+            const amount = 100n * 10n ** 18n // 100 dai
+            console.log(
+                "B: DAI Balance of Whale",
+                ethers.utils.formatUnits(await dai.balanceOf(daiwhale.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+            expect(await dai.balanceOf(daiwhale.address)).to.gte(amount)
+
+            await dai.connect(daiwhale).transfer(accounts[0].address, amount)
+            await dai.connect(daiwhale).transfer(accounts[1].address, amount)
+
+            console.log(
+                `Whale sends ${ ethers.utils.formatUnits(amount, 18) } Dai to User`,
+
+            );
+            console.log(
+                "A: Dai Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+        });
+
+        it("it should get the owner of contract", async () =>
+        {
+            const owner = await arb.owner()
+
+            expect(owner).to.eq(accounts[0].address)
+
+            console.log(
+                "ContractOwner:",
+                owner
+            );
+        });
+
+        it("dai -> usdc ", async () =>
+        {
+
+            const amount = 100n * 10n ** 18n // 100 dai
+            const usdcAmountInMAX = 100n * 10n ** 6n;
+            const AmountOut = 99n * 10n ** 6n;
+            console.log(
+                "B: DAI Balance of Contract",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+
+            expect(await dai.balanceOf(accounts[0].address)).to.gte(amount)
+            console.log(
+                `### User sends ${ ethers.utils.formatUnits(amount, 18) } to Contract ###`,
+            );
+
+            await dai.connect(accounts[0]).transfer(arb.address, amount)
+
+            console.log(
+                "B: USDC Balance of contact",
+                ethers.utils.formatUnits(await usdc.balanceOf(arb.address), 6)
+            );
+            console.log(
+                "B: USDC Balance of user",
+                ethers.utils.formatUnits(await usdc.balanceOf(accounts[0].address), 6)
+            );
+
+            console.log(
+                "B: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+
+            await dai
+                .connect(accounts[0])
+                .approve(arb.address, amount);
+
+            console.log(
+                "(Arbing NOW!)"
+            );
+
+            await arb.SimpleStableSwap(dai.address, amount, AmountOut)
+
+            const balance = await arb.TokenBalance(usdc.address)
+            console.log(`New USDC ${ ethers.utils.formatUnits(balance, 6) }`)
+
+
+            console.log(
+                "A: USDC Balance of contact (trade)",
+                ethers.utils.formatUnits(await usdc.balanceOf(arb.address), 6)
+            );
+            console.log(
+                "A: USDC Balance of user (trade)",
+                ethers.utils.formatUnits(await usdc.balanceOf(accounts[0].address), 6)
+            );
+
+            console.log(
+                "A: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await usdt.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "A: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await usdt.balanceOf(accounts[0].address), 18)
+            );
+        });
+    });
+
+    describe.skip('Swap Stable for ETH', () =>
+    {
+        it("unlock Acct", async () =>
+        {
+            const amount = 100n * 10n ** 18n // 100 dai
+            console.log(
+                "B: DAI Balance of Whale",
+                ethers.utils.formatUnits(await dai.balanceOf(daiwhale.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+            expect(await dai.balanceOf(daiwhale.address)).to.gte(amount)
+
+            await dai.connect(daiwhale).transfer(accounts[0].address, amount)
+            await dai.connect(daiwhale).transfer(accounts[1].address, amount)
+
+            console.log(
+                `Whale sends ${ ethers.utils.formatUnits(amount, 18) } Dai to User`,
+
+            );
+            console.log(
+                "A: Dai Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+        });
+
+        it("it should get the owner of contract", async () =>
+        {
+            const owner = await arb.owner()
+
+            expect(owner).to.eq(accounts[0].address)
+
+            console.log(
+                "ContractOwner:",
+                owner
+            );
+        });
+
+        it("dai -> usdc ", async () =>
+        {
+
+            const amount = 100n * 10n ** 18n // 100 dai
+            const usdcAmountInMAX = 100n * 10n ** 6n;
+            const AmountOut = 99n * 10n ** 6n;
+            console.log(
+                "B: DAI Balance of Contract",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+
+            expect(await dai.balanceOf(accounts[0].address)).to.gte(amount)
+            console.log(
+                `### User sends ${ ethers.utils.formatUnits(amount, 18) } to Contract ###`,
+            );
+
+            await dai.connect(accounts[0]).transfer(arb.address, amount)
+
+            console.log(
+                "B: USDC Balance of contact",
+                ethers.utils.formatUnits(await usdc.balanceOf(arb.address), 6)
+            );
+            console.log(
+                "B: USDC Balance of user",
+                ethers.utils.formatUnits(await usdc.balanceOf(accounts[0].address), 6)
+            );
+
+            console.log(
+                "B: DAI Balance of contact (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(arb.address), 18)
+            );
+            console.log(
+                "B: DAI Balance of user (trade)",
+                ethers.utils.formatUnits(await dai.balanceOf(accounts[0].address), 18)
+            );
+
+            await dai
+                .connect(accounts[0])
+                .approve(arb.address, amount);
+
+            console.log(
+                "(Arbing NOW!)"
+            );
+
+            await arb.SimpleSwap(dai.address, amount, AmountOut)
 
             const balance = await arb.TokenBalance(usdc.address)
             console.log(`New USDC ${ ethers.utils.formatUnits(balance, 6) }`)
