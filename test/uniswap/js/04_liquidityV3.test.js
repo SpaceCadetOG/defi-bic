@@ -56,7 +56,10 @@ describe("4: Add Liquidity to Uniswap V3", function () {
     await dai.connect(dai_whale).transfer(accounts[0].address, dai_amount);
     await usdc.connect(usdc_whale).transfer(accounts[0].address, usdc_amount);
   });
+  async function deployFixture()
+  {
 
+  }
   describe("Supply USDC <-> DAI", () =>
   { 
     it("mintNewPosition", async () => {

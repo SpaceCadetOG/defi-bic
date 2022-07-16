@@ -1,6 +1,7 @@
 // will do all the functions together
 // will call each test independent of each other
-
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { tokenAddress, tokenWhale } from "../../utils/constants/Tokens";
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
 
@@ -14,12 +15,12 @@ const DAI_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2";
 const address_provider = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5";
 describe("2: Test Uniswap Funcs", function ()
 {
-    let usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount;
 
-    beforeEach(async () =>
+    async function deployFixture()
     {
-        // will mock this acct
-        await network.provider.request({
+    let usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount;
+          // will mock this acct
+          await network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [USDC_WHALE],
         });
@@ -74,13 +75,15 @@ describe("2: Test Uniswap Funcs", function ()
       
           await dai.connect(accounts[0]).transfer(arb.address, paybackAmount);
       
-
-    });
+        return {usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount}
+    }
 
 
     describe.only('TestFlashLoanFunc(AAVE) -> usdc', () =>
     {
-        it("test flashloan", async () => {
+        it("test flashloan", async () =>
+        {
+            const {usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount} = await loadFixture(deployFixture)
             console.log(
               "Before Flashloan: DAI Balance of contract",
               ethers.utils.formatEther(await dai.balanceOf(arb.address))

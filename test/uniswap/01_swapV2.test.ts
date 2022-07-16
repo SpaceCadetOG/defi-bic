@@ -1,24 +1,22 @@
+import { tokenAddress, tokenWhale } from "../utils/constants/Tokens";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 
-const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-const WETH9 = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
-const WBTC_WHALE = "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2";
-const DAI_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2";
-const RouterAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 
 describe("1: Swapping on Uniswap v2 ", function () {
-  let accounts, swapOnV2, dai, wbtc, wbtc_whale, amountIn;
 
-  beforeEach(async () => {
+
+  async function deployFixture()
+  {
+    let accounts, swapOnV2, dai, wbtc, amountIn;
     accounts = await ethers.getSigners();
     await network.provider.request({
       method: "hardhat_impersonateAccount",
-      params: [WBTC_WHALE],
+      params: [tokenWhale.WBTC.eth],
     });
 
-    const wbtc_whale = await ethers.getSigner(WBTC_WHALE);
+    const wbtc_whale = await ethers.getSigner(tokenWhale.WBTC.eth);
     const TokenAbi = [
       "function balanceOf(address account) external view returns (uint256)",
       // Authenticated Functions
@@ -27,8 +25,8 @@ describe("1: Swapping on Uniswap v2 ", function () {
       "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
     ];
 
-    wbtc = await ethers.getContractAt(TokenAbi, WBTC);
-    dai = await ethers.getContractAt(TokenAbi, DAI);
+    wbtc = await ethers.getContractAt(TokenAbi, tokenAddress.WBTC.eth);
+    dai = await ethers.getContractAt(TokenAbi, tokenAddress.DAI.eth);
 
     const SwapOnV2 = await ethers.getContractFactory("SwapperV2");
     swapOnV2 = await SwapOnV2.deploy();
@@ -40,7 +38,7 @@ describe("1: Swapping on Uniswap v2 ", function () {
 
     console.log(
       "B: WBTC Balance of Whale",
-      ethers.utils.formatUnits(await wbtc.balanceOf(WBTC_WHALE), 8)
+      ethers.utils.formatUnits(await wbtc.balanceOf(wbtc_whale.address), 8)
     );
     console.log(
       "B: WBTC Balance of User",
@@ -50,7 +48,7 @@ describe("1: Swapping on Uniswap v2 ", function () {
 
     console.log(
       "A: WBTC Balance of Whale",
-      ethers.utils.formatUnits(await wbtc.balanceOf(WBTC_WHALE), 8)
+      ethers.utils.formatUnits(await wbtc.balanceOf(wbtc_whale.address), 8)
     );
     console.log(
       "A: WBTC Balance of User",
@@ -59,10 +57,13 @@ describe("1: Swapping on Uniswap v2 ", function () {
     console.log(
       "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     );
-  });
 
+    return {accounts, swapOnV2, dai, wbtc, amountIn}
+  }
   describe("Swap WBTC -> DAI", function () {
-    it("Should swap()", async function () {
+    it("Should swap()", async function ()
+    {
+      const {accounts, swapOnV2, dai, wbtc, amountIn} = await loadFixture(deployFixture)
       const wbtcAmountInMAX = 1n * 10n ** 8n;
       const daiAmountOut = 200n * 10n ** 18n;
       console.log(

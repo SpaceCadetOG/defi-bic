@@ -1,21 +1,27 @@
+import { tokenAddress, tokenWhale } from "../utils/constants/Tokens";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 
 const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const DAI_WHALE = "0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2"; // find whale on etherscan => Look for exchanges like FTX || Binacne || Coinbase
 const address_provider = "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5";
 
-describe("3: FlashSwap", function () {
-  let whale,
-    dai,
-    accounts,
-    borrowAmount,
-    fundAmount,
-    flashloan,
-    fee,
-    paybackAmount;
+describe("3: FlashSwap", function ()
+{
 
-  beforeEach(async () => {
+
+
+  async function deployFixture()
+  {
+    let whale,
+      dai,
+      accounts,
+      borrowAmount,
+      fundAmount,
+      flashloan,
+      fee,
+      paybackAmount;
     // will mock this acct
     await network.provider.request({
       method: "hardhat_impersonateAccount",
@@ -64,9 +70,30 @@ describe("3: FlashSwap", function () {
     await dai.connect(accounts[0]).transfer(flashloan.address, paybackAmount);
 
     // expect(await dai.balanceOf(accounts[0].address)).to.gte(paybackAmount);
-  });
-  describe("Borrow Dai", () => {
-    it("test flashloan", async () => {
+
+    return {
+      whale,
+      dai,
+      accounts,
+      borrowAmount,
+      fundAmount,
+      flashloan,
+      fee,
+      paybackAmount
+    }
+  }
+  describe("Borrow Dai", () =>
+  {
+    it("test flashloan", async () =>
+    {
+      const { whale,
+        dai,
+        accounts,
+        borrowAmount,
+        fundAmount,
+        flashloan,
+        fee,
+        paybackAmount } = await loadFixture(deployFixture)
       console.log(
         "Before Flashloan: DAI Balance of contract",
         ethers.utils.formatEther(await dai.balanceOf(flashloan.address))

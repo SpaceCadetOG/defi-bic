@@ -11,7 +11,9 @@
 
 
 
-- Add Flashloan Function
+- Add Flashloan Function [x]
 - Swap On Curve -> Add Liquidity to Curve
-- intergrate -> uniswap logic w/ sushi (No Flashloan)
+- intergrate -> uniswap logic w/ sushi (No Flashloan) [x]
 - intergrate -> uniswap logic w/ sushi (Flashloan)
+
+- Convert to Typesscript

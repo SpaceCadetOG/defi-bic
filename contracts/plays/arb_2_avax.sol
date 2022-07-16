@@ -32,16 +32,17 @@ import "hardhat/console.sol";
 // * Withdraw function [x]
 // * withdraw contract balance [x]
 
-contract arb_1 is FlashLoanReceiverBase {
+contract arb_2_avax is FlashLoanReceiverBase {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     address public owner = msg.sender;
     address constant ETHER = address(0);
-    address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-    address constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address private constant WETH = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    address constant USDC = 0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664;
+    address constant DAI = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
 
+
+// Use traderjoe \\ png \\ gmx
     address private constant UNISWAP_V2_ROUTER =
         0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address private constant SUSHISWAP_V2_ROUTER =

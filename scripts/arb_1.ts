@@ -4,7 +4,12 @@
 
 
 // read uniswap USDC/ETH Price 
-// read uniswap USDT/ETH Price 
+// read uniswap DAI/ETH Price 
+
+// read sushiswap USDC/ETH Price 
+// read sushiswap DAI/ETH Price 
+
+// compare to chainlink price
 
 
 // 1 - calulate amount in USDC to borrow and swap => (ETH)...avgPrice
