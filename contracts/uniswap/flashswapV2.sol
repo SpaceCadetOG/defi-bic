@@ -22,7 +22,6 @@ contract FlashSwapV2 is IUniswapV2Callee {
 
     address constant ETHER = address(0);
 
-
     function testFlashSwap(address _tokenBorrow, uint256 _amount) external {
         address pair = IUniswapV2Factory(FACTORY).getPair(_tokenBorrow, WETH);
         require(pair != address(0), "!pair");

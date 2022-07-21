@@ -66,8 +66,9 @@ contract arb_1 is FlashLoanReceiverBase {
         uint256 assetBalance = IERC20(_assetAddress).balanceOf(address(this));
         return assetBalance;
     }
+
     // send tokens to contract
-    function makeMoney(address asset, uint256 amount) external {
+    function makeMoney(address asset, uint256 amount) public {
         uint256 bal = IERC20(asset).balanceOf(address(this));
         require(bal > amount, "bal <= amount");
         console.log("before contract balance:", bal);
@@ -78,8 +79,6 @@ contract arb_1 is FlashLoanReceiverBase {
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        // amounts[1] = amount2;
-        // amounts[2] = amount3;
 
         // 0 = no debt, 1 = stable, 2 = variable
         // 0 = pay all loaned
@@ -88,7 +87,7 @@ contract arb_1 is FlashLoanReceiverBase {
 
         address onBehalfOf = msg.sender;
 
-        bytes memory params = ""; // extra data to pass abi.encode(...)
+        bytes memory params = abi.encode(asset, amount); // extra data to pass abi.encode(...)
         uint16 referralCode = 0;
 
         LENDING_POOL.flashLoan(
@@ -102,7 +101,7 @@ contract arb_1 is FlashLoanReceiverBase {
         );
 
         console.log("after contract balance:", bal);
-        // withdraw(asset);
+        withdraw(asset);
     }
 
     // aave will call this
@@ -116,8 +115,12 @@ contract arb_1 is FlashLoanReceiverBase {
         // do stuff here (arbitrage, liquidation, etc...)
         // abi.decode(params) to decode params
 
-        // SimpleStableETHSwap(assets[0], amounts[0], amounts[1]);
-        // SimpleETHStableSwap(assets[0], amounts[2], amounts[0]);
+        (address asset, uint256 amount) = abi.decode(
+            params,
+            (address, uint256)
+        );
+
+        SimpleStableETHSushi(asset, amount);
 
         for (uint256 i = 0; i < assets.length; i++) {
             console.log("borrowed (convert to ether)", amounts[i]);
@@ -132,84 +135,58 @@ contract arb_1 is FlashLoanReceiverBase {
         return true;
     }
 
-// {Swap on Uniswap}
-    function SimpleStableSwap(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    // {Swap on Uniswap}
+    function SimpleStableSwap(address _asset, uint256 amountIn) internal {
         if (USDC == _asset || DAI != _asset) {
-            swap_usdc_to_dai_uni(amountIn, amountOutMin);
+            swap_usdc_to_dai_uni(amountIn);
         } else {
-            swap_dai_to_usdc_uni(amountIn, amountOutMin);
+            swap_dai_to_usdc_uni(amountIn);
         }
     }
 
-    function SimpleETHStableSwap(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    function SimpleETHStableSwap(address _asset, uint256 amountIn) internal {
         if (USDC == _asset || DAI != _asset) {
-            swap_weth_for_stable_uni(USDC, amountIn, amountOutMin);
+            swap_weth_for_stable_uni(USDC, amountIn);
         } else {
-            swap_weth_for_stable_uni(DAI, amountIn, amountOutMin);
+            swap_weth_for_stable_uni(DAI, amountIn);
         }
     }
 
-    function SimpleStableETHSwap(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    function SimpleStableETHSwap(address _asset, uint256 amountIn) internal {
         if (USDC == _asset || DAI != _asset) {
-            swap_stable_to_weth_uni(USDC, amountIn, amountOutMin);
+            swap_stable_to_weth_uni(USDC, amountIn);
         } else {
-            swap_stable_to_weth_uni(DAI, amountIn, amountOutMin);
+            swap_stable_to_weth_uni(DAI, amountIn);
         }
     }
 
-// {Swap on Sushiswap}
-    function SimpleStableSushi(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    // {Swap on Sushiswap}
+    function SimpleStableSushi(address _asset, uint256 amountIn) external {
         if (USDC == _asset || DAI != _asset) {
-            swap_usdc_to_dai_sushi(amountIn, amountOutMin);
+            swap_usdc_to_dai_sushi(amountIn);
         } else {
-            swap_dai_to_usdc_sushi(amountIn, amountOutMin);
+            swap_dai_to_usdc_sushi(amountIn);
         }
     }
 
-    function SimpleETHStableSushi(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    function SimpleETHStableSushi(address _asset, uint256 amountIn) internal {
         if (USDC == _asset || DAI != _asset) {
-            swap_weth_for_stable_sushi(USDC, amountIn, amountOutMin);
+            swap_weth_for_stable_sushi(USDC, amountIn);
         } else {
-            swap_weth_for_stable_sushi(DAI, amountIn, amountOutMin);
+            swap_weth_for_stable_sushi(DAI, amountIn);
         }
     }
 
-    function SimpleStableETHSushi(
-        address _asset,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) external {
+    function SimpleStableETHSushi(address _asset, uint256 amountIn) internal {
         if (USDC == _asset || DAI != _asset) {
-            swap_stable_to_weth_sushi(USDC, amountIn, amountOutMin);
+            swap_stable_to_weth_sushi(USDC, amountIn);
         } else {
-            swap_stable_to_weth_sushi(DAI, amountIn, amountOutMin);
+            swap_stable_to_weth_sushi(DAI, amountIn);
         }
     }
 
     /* internal funcs => Uniswap || Sushiswap */
-    function swap_usdc_to_dai_uni(uint256 amountIn, uint256 amountOutMin)
-        internal
-    {
+    function swap_usdc_to_dai_uni(uint256 amountIn) internal {
         // address _tokenIn usdc
         // address _tokenOut usdt
         // uint _amountIn => user
@@ -230,7 +207,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[1] = WETH;
             path[2] = DAI;
         }
-
+        uint amountOutMin = getAmountOutMin(USDC, DAI, amountIn);
         IUniswapV2Router(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -241,9 +218,7 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete");
     }
 
-    function swap_dai_to_usdc_uni(uint256 amountIn, uint256 amountOutMin)
-        internal
-    {
+    function swap_dai_to_usdc_uni(uint256 amountIn) internal {
         IERC20(DAI).approve(UNISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (DAI == WETH || DAI == WETH) {
@@ -256,7 +231,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[1] = WETH;
             path[2] = USDC;
         }
-
+        uint amountOutMin = getAmountOutMin(DAI, USDC, amountIn);
         IUniswapV2Router(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -267,11 +242,9 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function swap_stable_to_weth_uni(
-        address stable,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) internal {
+    function swap_stable_to_weth_uni(address stable, uint256 amountIn)
+        internal
+    {
         IERC20(stable).approve(UNISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (stable == DAI || DAI == WETH || WETH == DAI) {
@@ -283,7 +256,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[0] = USDC;
             path[1] = WETH;
         }
-
+        uint amountOutMin = getAmountOutMin(stable, WETH, amountIn);
         IUniswapV2Router(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -294,11 +267,9 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function swap_weth_for_stable_uni(
-        address stable,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) internal {
+    function swap_weth_for_stable_uni(address stable, uint256 amountIn)
+        internal
+    {
         IERC20(WETH).approve(UNISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (stable == DAI || DAI == WETH || WETH == DAI) {
@@ -310,7 +281,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[0] = WETH;
             path[1] = USDC;
         }
-
+        uint amountOutMin = getAmountOutMin(WETH, stable, amountIn);
         IUniswapV2Router(UNISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -321,16 +292,7 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function swap_usdc_to_dai_sushi(uint256 amountIn, uint256 amountOutMin)
-        internal
-    {
-        // address _tokenIn usdc
-        // address _tokenOut usdt
-        // uint _amountIn => user
-        // uint _amountOutMin => compare to link price
-        // address _to => address(this)
-
-        // IERC20(USDC).transferFrom(msg.sender, address(this), amountIn);
+    function swap_usdc_to_dai_sushi(uint256 amountIn) internal {
         IERC20(USDC).approve(SUSHISWAP_V2_ROUTER, amountIn);
 
         address[] memory path;
@@ -344,7 +306,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[1] = WETH;
             path[2] = DAI;
         }
-
+        uint amountOutMin = getAmountOutMin(USDC, DAI, amountIn);
         IUniswapV2Router(SUSHISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -355,9 +317,7 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete");
     }
 
-    function swap_dai_to_usdc_sushi(uint256 amountIn, uint256 amountOutMin)
-        internal
-    {
+    function swap_dai_to_usdc_sushi(uint256 amountIn) internal {
         IERC20(DAI).approve(SUSHISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (DAI == WETH || DAI == WETH) {
@@ -370,7 +330,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[1] = WETH;
             path[2] = USDC;
         }
-
+        uint amountOutMin = getAmountOutMin(DAI, USDC, amountIn);
         IUniswapV2Router(SUSHISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -381,11 +341,9 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function swap_stable_to_weth_sushi(
-        address stable,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) internal {
+    function swap_stable_to_weth_sushi(address stable, uint256 amountIn)
+        internal
+    {
         IERC20(stable).approve(SUSHISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (stable == DAI || DAI == WETH || WETH == DAI) {
@@ -397,7 +355,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[0] = USDC;
             path[1] = WETH;
         }
-
+        uint amountOutMin = getAmountOutMin(stable, WETH, amountIn);
         IUniswapV2Router(SUSHISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -408,11 +366,9 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function swap_weth_for_stable_sushi(
-        address stable,
-        uint256 amountIn,
-        uint256 amountOutMin
-    ) internal {
+    function swap_weth_for_stable_sushi(address stable, uint256 amountIn)
+        internal
+    {
         IERC20(WETH).approve(SUSHISWAP_V2_ROUTER, amountIn);
         address[] memory path;
         if (stable == DAI || DAI == WETH || WETH == DAI) {
@@ -424,7 +380,7 @@ contract arb_1 is FlashLoanReceiverBase {
             path[0] = WETH;
             path[1] = USDC;
         }
-
+        uint amountOutMin = getAmountOutMin(WETH, stable, amountIn);
         IUniswapV2Router(SUSHISWAP_V2_ROUTER).swapExactTokensForTokens(
             amountIn,
             amountOutMin,
@@ -435,7 +391,28 @@ contract arb_1 is FlashLoanReceiverBase {
         console.log("Swap Complete balance");
     }
 
-    function withdraw(address _assetAddress) public Owner {
+    function getAmountOutMin(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amount
+    ) public view returns (uint256) {
+        address[] memory path;
+        if (_tokenIn == WETH || _tokenOut == WETH) {
+            path = new address[](2);
+            path[0] = _tokenIn;
+            path[1] = _tokenOut;
+        } else {
+            path = new address[](3);
+            path[0] = _tokenIn;
+            path[1] = WETH;
+            path[2] = _tokenOut;
+        }
+        uint256[] memory amountOutMins = IUniswapV2Router(UNISWAP_V2_ROUTER)
+            .getAmountsOut(_amount, path);
+        return amountOutMins[path.length - 1];
+    }
+
+    function withdraw(address _assetAddress) internal Owner {
         uint256 assetBalance;
         console.log("after contract balance:", assetBalance);
         if (_assetAddress == ETHER) {

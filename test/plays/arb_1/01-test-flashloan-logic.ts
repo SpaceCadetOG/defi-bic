@@ -45,35 +45,35 @@ describe("2: Test Uniswap Funcs", function ()
         weth = await ethers.getContractAt(TokenAbi, WETH);
         fundAmount = 200n * 10n ** 18n; // 20000 dai
         borrowAmount = 100n * 10n ** 18n; // 10000 dai
-        fee = 10n * 10n ** 18n; // 10000 dai
+        fee = 9n * 10n ** 18n; // 10000 dai
         const ArbUSDC_USDT = await ethers.getContractFactory("arb_1");
         arb = await ArbUSDC_USDT.deploy(address_provider);
         await arb.deployed();
         // console.log('ArbContact:', arb.address)
 
-        console.log(
-            "B: DAI Balance of Whale",
-            ethers.utils.formatEther(await dai.balanceOf(daiwhale.address))
-          );
-          console.log(
-            "B: DAI Balance of User",
-            ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
-          );
+        // console.log(
+        //     "B: DAI Balance of Whale",
+        //     ethers.utils.formatEther(await dai.balanceOf(daiwhale.address))
+        //   );
+        //   console.log(
+        //     "B: DAI Balance of User",
+        //     ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
+        //   );
       
           await dai.connect(daiwhale).transfer(accounts[0].address, fundAmount);
           expect(await dai.balanceOf(daiwhale.address)).to.gte(fundAmount);
       
-          console.log(
-            "A: DAI Balance of Whale",
-            ethers.utils.formatEther(await dai.balanceOf(daiwhale.address))
-          );
-          console.log(
-            "A: DAI Balance of User",
-            ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
-          );
+          // console.log(
+          //   "A: DAI Balance of Whale",
+          //   ethers.utils.formatEther(await dai.balanceOf(daiwhale.address))
+          // );
+          // console.log(
+          //   "A: DAI Balance of User",
+          //   ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
+          // );
           paybackAmount = borrowAmount + fee;
       
-          await dai.connect(accounts[0]).transfer(arb.address, paybackAmount);
+        await dai.connect(accounts[0]).transfer(arb.address, paybackAmount);
       
         return {usdcwhale, daiwhale, usdc, accounts, arb, dai, weth, fundAmount, borrowAmount, fee, paybackAmount}
     }
@@ -92,27 +92,38 @@ describe("2: Test Uniswap Funcs", function ()
               "Before Flashloan: DAI Balance of user",
               ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
             );
-            const profit = await dai.balanceOf(arb.address);
-      
+
+            console.log()
             console.log(
               "+++++++++++++++++++++++FlashLoaning+++++++++++++++++++++++++++++"
             );
             const AmountInMAX = 100n * 10n ** 18n;
             const balance = await arb.TokenBalance(weth.address)
-            await arb.makeMoney(dai.address, borrowAmount);
+            const daibalance = await arb.TokenBalance(weth.address)
+
+            const amount = 100n * 10n ** 6n // 100 dai
+            const usdcAmountInMAX = 100n * 10n ** 6n;
+            const usdtAmountOut = 99n * 10n ** 6n;
+
+            await arb.makeMoney(dai.address, amount);
+            // await arb.SimpleStableSwap(usdc.address, amount, usdtAmountOut)
+            console.log(`WETH: ${ balance }`)
+                
+            console.log(`DAI: ${daibalance}`)
+            ;
             console.log(
               "+++++++++++++++++++++++Complete+++++++++++++++++++++++++++++"
             );
         // send funds to contract
-            console.log(
-              "After Flashloan: DAI Balance of contract",
-              ethers.utils.formatEther(await dai.balanceOf(arb.address))
-            );
+            // console.log(
+            //   "After Flashloan: DAI Balance of contract",
+            //   ethers.utils.formatEther(await dai.balanceOf(arb.address))
+            // );
       
-            console.log(
-              "After Flashloan: DAI Balance of user",
-              ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
-            );
+            // console.log(
+            //   "After Flashloan: DAI Balance of user",
+            //   ethers.utils.formatEther(await dai.balanceOf(accounts[0].address))
+            // );
           });
     });
 

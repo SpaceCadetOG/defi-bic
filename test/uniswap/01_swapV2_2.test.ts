@@ -29,7 +29,7 @@ describe("1: Swapping on Uniswap v2 ", function () {
     wbtc = await ethers.getContractAt(TokenAbi, tokenAddress.WBTC.eth);
     dai = await ethers.getContractAt(TokenAbi, tokenAddress.DAI.eth);
 
-    const SwapOnV2 = await ethers.getContractFactory("SwapperV2");
+    const SwapOnV2 = await ethers.getContractFactory("SwapperV2_2");
     swapOnV2 = await SwapOnV2.deploy();
     await swapOnV2.deployed();
     console.log(`Swapper Contract: ${swapOnV2.address}`)
@@ -84,11 +84,11 @@ describe("1: Swapping on Uniswap v2 ", function () {
       await wbtc
         .connect(accounts[0])
         .approve(swapOnV2.address, wbtcAmountInMAX);
+      
       await swapOnV2.swap(
         wbtc.address,
         dai.address,
         wbtcAmountInMAX,
-        daiAmountOut,
         accounts[0].address
       );
 
